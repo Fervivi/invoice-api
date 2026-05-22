@@ -26,101 +26,45 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // Lee la propiedad jwt.secret desde application.properties
-    @Value("${jwt.secret}")
+    private final String BEARER = "Bearer ";
 
-    // Variable donde se guarda la clave secreta
+    @Value("${jwt.secret}")
     private String secret;
 
-    // Método principal del filtro
+    @Value("${jwt.issuer}")
+    private String issuer;
+
     @Override
-    protected void doFilterInternal(
-
-            // Request HTTP entrante
-            HttpServletRequest request,
-
-            // Response HTTP saliente
-            HttpServletResponse response,
-
-            // Cadena de filtros de Spring Security
-            FilterChain filterChain)
-
-            // Excepciones posibles
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filter)
             throws ServletException, IOException {
-
-        // Obtiene el header Authorization
-        String header = request.getHeader("Authorization");
-
-        // Si no existe Authorization o no comienza con Bearer
-        if (header == null || !header.startsWith("Bearer ")) {
-
-            // Continúa normalmente al siguiente filtro
-            filterChain.doFilter(request, response);
-
-            // Termina ejecución del método
+        String header = req.getHeader("Authorization");
+        if (header == null || !header.startsWith(BEARER)) {
+            filter.doFilter(req, res);
             return;
         }
 
         try {
-
-            // Extrae el token quitando "Bearer "
-            String token = header.substring(7);
-
+            String token = header.substring(BEARER.length());
             DecodedJWT jwt = JWT.require(Algorithm.HMAC256(secret))
-                    .withIssuer("login-service")
+                    .withIssuer(issuer)
                     .build()
                     .verify(token);
-
-            // Obtiene el username desde el payload JWT
             String username = jwt.getSubject();
-
-            // Obtiene la lista de roles desde el claim roles
             List<String> roles = jwt.getClaim("roles").asList(String.class);
+            roles = roles != null ? roles : List.of();
+            List<SimpleGrantedAuthority> authorities = (roles == null)
+                    ? List.of()
+                    : roles.stream().map(SimpleGrantedAuthority::new).toList();
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(username, null, authorities);
 
-            // Si el token no trae roles, se deja una lista vacía
-            if (roles == null) {
-                roles = List.of();
-            }
+            SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // Convierte los roles del token en permisos de Spring Security
-            List<SimpleGrantedAuthority> authorities = roles.stream()
-
-                    // Convierte cada texto ROLE_USER o ROLE_ADMIN en SimpleGrantedAuthority
-                    .map(SimpleGrantedAuthority::new)
-
-                    // Convierte el stream en una lista
-                    .toList();
-
-            // Crea objeto Authentication para Spring Security
-            UsernamePasswordAuthenticationToken authentication =
-
-                    // Constructor Authentication
-                    new UsernamePasswordAuthenticationToken(
-
-                            // Usuario autenticado
-                            username,
-
-                            // Password null porque JWT ya autenticó
-                            null,
-
-                            // Lista de roles/permisos
-                            authorities);
-
-            // Guarda la autenticación del usuario en Spring Security
-            SecurityContextHolder.getContext()
-
-                    // Define usuario autenticado actual
-                    .setAuthentication(authentication);
-
-        } catch (Exception e) {
-
-            // Si JWT es inválido responde 401 Unauthorized
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-            // Termina ejecución
+        } catch (Exception err) {
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        // Continúa al siguiente filtro o controller
-        filterChain.doFilter(request, response);
+        filter.doFilter(req, res);
     }
 }
