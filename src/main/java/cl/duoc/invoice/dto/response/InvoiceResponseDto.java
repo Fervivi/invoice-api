@@ -35,6 +35,7 @@ public class InvoiceResponseDto {
     private BigDecimal montoNeto;
     private BigDecimal iva;
     private BigDecimal montoTotal;
+    private Boolean anulada;
 
     private List<InvoiceItemResponseDto> items;
 }
