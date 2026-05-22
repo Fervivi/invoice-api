@@ -6,12 +6,9 @@
  */
 package cl.duoc.invoice.service;
 
-import cl.duoc.invoice.dto.request.InvoiceItemRequestDto;
 import cl.duoc.invoice.dto.request.InvoiceRequestDto;
-import cl.duoc.invoice.dto.response.InvoiceItemResponseDto;
 import cl.duoc.invoice.dto.response.InvoiceResponseDto;
 import cl.duoc.invoice.exception.ResourceNotFoundException;
-import cl.duoc.invoice.model.InvoiceItemModel;
 import cl.duoc.invoice.model.InvoiceModel;
 import cl.duoc.invoice.repository.InvoiceRepository;
 import java.math.BigDecimal;
@@ -32,6 +29,7 @@ public class InvoiceService {
 
         InvoiceModel invoice = new InvoiceModel();
 
+        invoice.setSaleId(request.getSaleId());
         invoice.setFolio(nextFolio);
         invoice.setFecha(request.getFecha());
 
@@ -45,19 +43,14 @@ public class InvoiceService {
         invoice.setDireccionEmisor(request.getDireccionEmisor());
         invoice.setRutEmisor(request.getRutEmisor());
 
-        List<InvoiceItemModel> items = request.getItems().stream()
-                .map(itemRequest -> mapToItemModel(itemRequest, invoice))
-                .collect(Collectors.toList());
-
-        invoice.setItems(items);
-
-        BigDecimal montoNeto = calculateMontoNeto(items);
+        BigDecimal montoNeto = request.getMontoNeto();
         BigDecimal iva = montoNeto.multiply(new BigDecimal("0.19"));
         BigDecimal montoTotal = montoNeto.add(iva);
 
         invoice.setMontoNeto(montoNeto);
         invoice.setIva(iva);
         invoice.setMontoTotal(montoTotal);
+        invoice.setAnulada(false);
 
         InvoiceModel savedInvoice = invoiceRepository.save(invoice);
 
@@ -76,6 +69,22 @@ public class InvoiceService {
         return mapToResponseDto(invoice);
     }
 
+    public InvoiceResponseDto deleteInvoice(Long folio) {
+        InvoiceModel invoice = invoiceRepository
+                .findByFolio(folio)
+                .orElseThrow(() -> new ResourceNotFoundException("Factura no encontrada con folio: " + folio));
+
+        if (Boolean.TRUE.equals(invoice.getAnulada())) {
+            throw new RuntimeException("La factura ya se encuentra anulada");
+        }
+
+        invoice.setAnulada(true);
+
+        InvoiceModel savedInvoice = invoiceRepository.save(invoice);
+
+        return mapToResponseDto(savedInvoice);
+    }
+
     private Long getNextFolio() {
         return invoiceRepository
                 .findTopByOrderByFolioDesc()
@@ -83,28 +92,11 @@ public class InvoiceService {
                 .orElse(1L);
     }
 
-    private InvoiceItemModel mapToItemModel(InvoiceItemRequestDto itemRequest, InvoiceModel invoice) {
-        InvoiceItemModel item = new InvoiceItemModel();
-
-        BigDecimal subtotal = itemRequest.getPrecioUnitario().multiply(BigDecimal.valueOf(itemRequest.getCantidad()));
-
-        item.setCantidad(itemRequest.getCantidad());
-        item.setNombreProducto(itemRequest.getNombreProducto());
-        item.setPrecioUnitario(itemRequest.getPrecioUnitario());
-        item.setSubtotal(subtotal);
-        item.setInvoiceModel(invoice);
-
-        return item;
-    }
-
-    private BigDecimal calculateMontoNeto(List<InvoiceItemModel> items) {
-        return items.stream().map(InvoiceItemModel::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
     private InvoiceResponseDto mapToResponseDto(InvoiceModel invoice) {
         InvoiceResponseDto response = new InvoiceResponseDto();
 
         response.setId(invoice.getId());
+        response.setSaleId(invoice.getSaleId());
         response.setFolio(invoice.getFolio());
         response.setFecha(invoice.getFecha());
 
@@ -123,39 +115,6 @@ public class InvoiceService {
         response.setMontoTotal(invoice.getMontoTotal());
         response.setAnulada(invoice.getAnulada());
 
-        List<InvoiceItemResponseDto> items =
-                invoice.getItems().stream().map(this::mapToItemResponseDto).collect(Collectors.toList());
-
-        response.setItems(items);
-
         return response;
-    }
-
-    private InvoiceItemResponseDto mapToItemResponseDto(InvoiceItemModel item) {
-        InvoiceItemResponseDto itemResponse = new InvoiceItemResponseDto();
-
-        itemResponse.setId(item.getId());
-        itemResponse.setCantidad(item.getCantidad());
-        itemResponse.setNombreProducto(item.getNombreProducto());
-        itemResponse.setPrecioUnitario(item.getPrecioUnitario());
-        itemResponse.setSubtotal(item.getSubtotal());
-
-        return itemResponse;
-    }
-
-    public InvoiceResponseDto deleteInvoice(Long folio) {
-        InvoiceModel invoice = invoiceRepository
-                .findByFolio(folio)
-                .orElseThrow(() -> new ResourceNotFoundException("Factura no encontrada con folio: " + folio));
-
-        if (Boolean.TRUE.equals(invoice.getAnulada())) {
-            throw new RuntimeException("La factura ya se encuentra anulada");
-        }
-
-        invoice.setAnulada(true);
-
-        InvoiceModel savedInvoice = invoiceRepository.save(invoice);
-
-        return mapToResponseDto(savedInvoice);
     }
 }
