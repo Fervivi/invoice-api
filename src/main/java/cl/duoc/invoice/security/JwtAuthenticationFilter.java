@@ -25,7 +25,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    // Lee la propiedad jwt.secret desde application.properties
     private final String BEARER = "Bearer ";
 
     @Value("${jwt.secret}")

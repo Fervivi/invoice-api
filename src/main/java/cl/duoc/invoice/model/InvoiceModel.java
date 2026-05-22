@@ -75,6 +75,9 @@ public class InvoiceModel {
     @Column(nullable = false)
     private BigDecimal montoTotal;
 
+    @Column(nullable = false)
+    private Boolean anulada = false;
+
     @OneToMany(mappedBy = "invoiceModel", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<InvoiceItemModel> items = new ArrayList<>();
