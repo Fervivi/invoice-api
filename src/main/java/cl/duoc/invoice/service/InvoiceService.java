@@ -121,6 +121,7 @@ public class InvoiceService {
         response.setMontoNeto(invoice.getMontoNeto());
         response.setIva(invoice.getIva());
         response.setMontoTotal(invoice.getMontoTotal());
+        response.setAnulada(invoice.getAnulada());
 
         List<InvoiceItemResponseDto> items =
                 invoice.getItems().stream().map(this::mapToItemResponseDto).collect(Collectors.toList());
@@ -140,5 +141,21 @@ public class InvoiceService {
         itemResponse.setSubtotal(item.getSubtotal());
 
         return itemResponse;
+    }
+
+    public InvoiceResponseDto deleteInvoice(Long folio) {
+        InvoiceModel invoice = invoiceRepository
+                .findByFolio(folio)
+                .orElseThrow(() -> new ResourceNotFoundException("Factura no encontrada con folio: " + folio));
+
+        if (Boolean.TRUE.equals(invoice.getAnulada())) {
+            throw new RuntimeException("La factura ya se encuentra anulada");
+        }
+
+        invoice.setAnulada(true);
+
+        InvoiceModel savedInvoice = invoiceRepository.save(invoice);
+
+        return mapToResponseDto(savedInvoice);
     }
 }
