@@ -8,7 +8,6 @@ package cl.duoc.invoice.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,14 +18,15 @@ import lombok.NoArgsConstructor;
 public class InvoiceResponseDto {
 
     private Long id;
+    private Long saleId;
     private Long folio;
     private LocalDate fecha;
-    // datos receptor (cliente)
+
     private String razonSocialReceptor;
     private String giroReceptor;
     private String direccionReceptor;
     private String rutReceptor;
-    // datos emisor(proveedor)
+
     private String razonSocialEmisor;
     private String giroEmisor;
     private String direccionEmisor;
@@ -36,6 +36,4 @@ public class InvoiceResponseDto {
     private BigDecimal iva;
     private BigDecimal montoTotal;
     private Boolean anulada;
-
-    private List<InvoiceItemResponseDto> items;
 }
