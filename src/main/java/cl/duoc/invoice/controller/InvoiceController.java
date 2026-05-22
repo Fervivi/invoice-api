@@ -48,7 +48,7 @@ public class InvoiceController {
     }
 
     @PutMapping("/{folio}/anular")
-    public ResponseEntity<InvoiceResponseDto> anularInvoice(@PathVariable Long folio) {
+    public ResponseEntity<InvoiceResponseDto> deleteInvoice(@PathVariable Long folio) {
         InvoiceResponseDto response = invoiceService.deleteInvoice(folio);
         return ResponseEntity.ok(response);
     }
