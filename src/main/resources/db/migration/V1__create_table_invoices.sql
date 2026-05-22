@@ -1,5 +1,6 @@
 CREATE TABLE invoices (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sale_id BIGINT NOT NULL,
     fecha DATE NOT NULL,
     folio BIGINT NOT NULL UNIQUE,
 
@@ -17,18 +18,4 @@ CREATE TABLE invoices (
     iva DECIMAL(19, 2) NOT NULL,
     monto_total DECIMAL(19, 2) NOT NULL,
     anulada BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-CREATE TABLE invoice_items (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cantidad INT NOT NULL,
-    nombre_producto VARCHAR(255) NOT NULL,
-    precio_unitario DECIMAL(19, 2) NOT NULL,
-    subtotal DECIMAL(19, 2) NOT NULL,
-    invoice_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_invoice_items_invoice
-        FOREIGN KEY (invoice_id)
-        REFERENCES invoices(id)
-        ON DELETE CASCADE
 );
