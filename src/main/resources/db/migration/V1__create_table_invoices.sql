@@ -15,7 +15,8 @@ CREATE TABLE invoices (
 
     monto_neto DECIMAL(19, 2) NOT NULL,
     iva DECIMAL(19, 2) NOT NULL,
-    monto_total DECIMAL(19, 2) NOT NULL
+    monto_total DECIMAL(19, 2) NOT NULL,
+    anulada BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE invoice_items (
