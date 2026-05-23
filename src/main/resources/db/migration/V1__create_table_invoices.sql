@@ -1,0 +1,21 @@
+CREATE TABLE invoices (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sale_id BIGINT NOT NULL,
+    fecha DATE NOT NULL,
+    folio BIGINT NOT NULL UNIQUE,
+
+    razon_social_receptor VARCHAR(255) NOT NULL,
+    giro_receptor VARCHAR(255) NOT NULL,
+    direccion_receptor VARCHAR(255) NOT NULL,
+    rut_receptor VARCHAR(20) NOT NULL,
+
+    razon_social_emisor VARCHAR(255) NOT NULL,
+    giro_emisor VARCHAR(255) NOT NULL,
+    direccion_emisor VARCHAR(255) NOT NULL,
+    rut_emisor VARCHAR(20) NOT NULL,
+
+    monto_neto DECIMAL(19, 2) NOT NULL,
+    iva DECIMAL(19, 2) NOT NULL,
+    monto_total DECIMAL(19, 2) NOT NULL,
+    anulada BOOLEAN NOT NULL DEFAULT FALSE
+);
