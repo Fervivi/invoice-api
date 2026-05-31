@@ -1,91 +1,146 @@
-# Invoice Microservice
+# Invoice Microservice (invoice-api v1)
 
 ## Descripción
 
-Invoice Microservice es un microservicio desarrollado con Spring Boot enfocado en la gestión de facturas dentro de una arquitectura basada en microservicios.
+Microservicio encargado de administrar facturas dentro del sistema.
 
-Este servicio permite:
-
-- Crear facturas
-- Consultar facturas
-- Gestionar productos asociados a una factura
-- Aplicar reglas de negocio relacionadas al cálculo de montos
-- Validar información de entrada
-- Manejar excepciones centralizadamente
-- Proteger endpoints mediante JWT
-- Persistir información en MySQL utilizando JPA + Hibernate
-- Ejecutar migraciones mediante Flyway
-- Consumir otros microservicios mediante WebClient
+Permite registrar facturas, consultar facturas existentes, generar folios automáticos y anular documentos.
 
 ---
 
-# Funcionalidades principales
+## Tech Stack
 
-- Creación de facturas
-- Consulta de facturas por folio
-- Persistencia relacional con JPA
-- Validaciones de datos
-- Manejo centralizado de errores
-- Seguridad JWT
-- Comunicación entre microservicios
-- Migraciones con Flyway
-
----
-
-# Tecnologías utilizadas
-
-- Java 25
-- Spring Boot 4
-- Spring Web MVC
-- Spring Data JPA
-- Spring Security
-- JWT (java-jwt)
-- Spring Validation
-- Spring WebFlux (WebClient)
-- Flyway
-- MySQL
-- Docker
-- phpMyAdmin
-- Lombok
-- Maven
-- Swagger / OpenAPI
+* Java 25
+* Spring Boot 4.0.6
+* Spring Security
+* JWT
+* Spring Data JPA
+* MySQL
+* Flyway
+* Docker
+* Maven
 
 ---
 
-# Dependencias principales
+## Funcionalidades
 
-El proyecto utiliza las siguientes dependencias:
-
-- spring-boot-starter-webmvc
-- spring-boot-starter-data-jpa
-- spring-boot-starter-security
-- spring-boot-starter-validation
-- spring-boot-starter-webflux
-- spring-boot-starter-flyway
-- mysql-connector-j
-- java-jwt
-- springdoc-openapi-starter-webmvc-ui
-- lombok
-- flyway-mysql
+* Crear facturas
+* Generar folio automático
+* Buscar factura por folio
+* Listar facturas
+* Contar facturas registradas
+* Anular facturas
 
 ---
 
-# Arquitectura del proyecto
+## Modelo de Datos
 
-El microservicio sigue el patrón CSR (Controller - Service - Repository).
+```mermaid
+erDiagram
+    INVOICES {
+        BIGINT id PK
+        DATE fecha
+        BIGINT folio
+        VARCHAR razon_social_receptor
+        VARCHAR giro_receptor
+        VARCHAR direccion_receptor
+        VARCHAR rut_receptor
+        VARCHAR razon_social_emisor
+        VARCHAR giro_emisor
+        VARCHAR direccion_emisor
+        VARCHAR rut_emisor
+        DECIMAL monto_neto
+        DECIMAL iva
+        DECIMAL monto_total
+        BOOLEAN anulada
+    }
+```
 
-```text
-src/main/java/cl/duoc/invoice
-│
-├── client
-├── config
-├── controller
-├── dto
-│   ├── request
-│   └── response
-├── exception
-├── model
-├── repository
-├── security
-├── service
-└── InvoiceApplication.java
+---
+
+## API / Endpoints
+
+Base URL:
+
+```txt
+/api/v1/invoices
+```
+
+| Acción           | Método | Endpoint                          |
+| ---------------- | ------ | --------------------------------- |
+| Crear factura    | POST   | `/api/v1/invoices`                |
+| Listar facturas  | GET    | `/api/v1/invoices`                |
+| Buscar por folio | GET    | `/api/v1/invoices/{folio}`        |
+| Contar facturas  | GET    | `/api/v1/invoices/count`          |
+| Anular factura   | PUT    | `/api/v1/invoices/{folio}/anular` |
+
+---
+
+## Ejemplo de Request
+
+```http
+POST http://localhost:8084/api/v1/invoices
+```
+
+Body:
+
+```json
+{
+  "fecha": "2026-05-31",
+  "razonSocialReceptor": "Cliente Ejemplo SPA",
+  "giroReceptor": "Comercio",
+  "direccionReceptor": "Av. Siempre Viva 123",
+  "rutReceptor": "11111111-1",
+  "razonSocialEmisor": "Empresa Emisora SPA",
+  "giroEmisor": "Venta de productos",
+  "direccionEmisor": "Av. Principal 456",
+  "rutEmisor": "22222222-2"
+}
+```
+
+---
+
+## Variables de entorno
+
+```env
+SPRING_ENV=dev
+SPRING_APP_NAME=Invoice
+
+HOST_PORT=8084
+
+MYSQL_DATABASE=db_invoices
+
+SPRING_JWT_SECRET=secret-key
+SPRING_JWT_ISSUER=login-service
+```
+
+---
+
+## Ejecución
+
+```bash
+docker compose up -d
+mvn spring-boot:run
+```
+
+---
+
+## Seguridad
+
+Los endpoints protegidos utilizan JWT.
+
+Header:
+
+```txt
+Authorization: Bearer TOKEN
+```
+
+---
+
+## Equipo
+
+* Eduardo Bray
+* Rodrigo Callealta
+* Fernando Villalobos
+
+> DuocUC — FullStack 1 © 2026
