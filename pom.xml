@@ -76,16 +76,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-hateoas</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.datafaker</groupId>
-			<artifactId>datafaker</artifactId>
-			<version>2.5.4</version>
+			<version>3.0.2</version>
 		</dependency>
 
 		<dependency>
@@ -144,17 +135,7 @@
 		<dependency>
 			<groupId>net.logstash.logback</groupId>
 			<artifactId>logstash-logback-encoder</artifactId>
-			<version>9.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<version>7.4</version>
 		</dependency>
 
 	</dependencies>
@@ -263,9 +244,6 @@
 								<include>pom.xml</include>
 								<include>**/*.xml</include>
 							</includes>
-							<excludes>
-								<exclude>**/logback-spring.xml</exclude>
-							</excludes>
 							<eclipseWtp>
 								<type>XML</type>
 							</eclipseWtp>
