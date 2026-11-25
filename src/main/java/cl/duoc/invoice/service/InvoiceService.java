@@ -67,6 +67,13 @@ public class InvoiceService {
         return invoiceRepository.findAll().stream().map(this::mapToResponseDto).collect(Collectors.toList());
     }
 
+    /** Facturas asociadas a una venta (puede haber varias si alguna fue anulada y se reemitió). */
+    public List<InvoiceResponseDto> getInvoicesBySaleId(Long saleId) {
+        return invoiceRepository.findBySaleIdOrderByFolioAsc(saleId).stream()
+                .map(this::mapToResponseDto)
+                .toList();
+    }
+
     public InvoiceResponseDto getInvoiceByFolio(Long folio) {
         InvoiceModel invoice = invoiceRepository
                 .findByFolio(folio)

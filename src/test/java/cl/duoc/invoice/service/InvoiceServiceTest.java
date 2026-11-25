@@ -21,6 +21,7 @@ import cl.duoc.invoice.model.InvoiceModel;
 import cl.duoc.invoice.repository.InvoiceRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -106,6 +107,24 @@ class InvoiceServiceTest {
         when(invoiceRepository.save(any(InvoiceModel.class))).thenAnswer(inv -> inv.getArgument(0));
 
         assertThat(invoiceService.createInvoice(request("1000")).getFolio()).isEqualTo(8L);
+    }
+
+    @Test
+    void getInvoicesBySaleId_returnsOnlyThatSaleInvoices() {
+        when(invoiceRepository.findBySaleIdOrderByFolioAsc(10L))
+                .thenReturn(List.of(invoice(1L, true), invoice(2L, false)));
+
+        List<InvoiceResponseDto> response = invoiceService.getInvoicesBySaleId(10L);
+
+        assertThat(response).extracting(InvoiceResponseDto::getFolio).containsExactly(1L, 2L);
+        assertThat(response).allSatisfy(dto -> assertThat(dto.getSaleId()).isEqualTo(10L));
+    }
+
+    @Test
+    void getInvoicesBySaleId_withoutInvoices_returnsEmptyList() {
+        when(invoiceRepository.findBySaleIdOrderByFolioAsc(99L)).thenReturn(List.of());
+
+        assertThat(invoiceService.getInvoicesBySaleId(99L)).isEmpty();
     }
 
     @Test

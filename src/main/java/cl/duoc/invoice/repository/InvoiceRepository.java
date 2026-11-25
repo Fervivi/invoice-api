@@ -7,6 +7,7 @@
 package cl.duoc.invoice.repository;
 
 import cl.duoc.invoice.model.InvoiceModel;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,4 +16,6 @@ public interface InvoiceRepository extends JpaRepository<InvoiceModel, Long> {
     Optional<InvoiceModel> findTopByOrderByFolioDesc();
 
     Optional<InvoiceModel> findByFolio(Long folio);
+
+    List<InvoiceModel> findBySaleIdOrderByFolioAsc(Long saleId);
 }

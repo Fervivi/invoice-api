@@ -69,6 +69,23 @@ public class InvoiceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/sale/{saleId}")
+    @Operation(
+            summary = "Listar facturas de una venta",
+            description = "Obtiene las facturas asociadas a una venta. Devuelve una lista vacía si la venta no tiene"
+                    + " facturas.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Facturas de la venta obtenidas correctamente",
+                content = @Content(array = @ArraySchema(schema = @Schema(implementation = InvoiceResponseDto.class)))),
+        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content)
+    })
+    public ResponseEntity<List<InvoiceResponseDto>> getInvoicesBySale(
+            @Parameter(description = "ID de la venta en sales-api", example = "1") @PathVariable Long saleId) {
+        return ResponseEntity.ok(invoiceService.getInvoicesBySaleId(saleId));
+    }
+
     @GetMapping("/{folio}")
     @Operation(summary = "Buscar factura por folio", description = "Obtiene una factura usando su folio tributario.")
     @ApiResponses({
