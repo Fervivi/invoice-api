@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import cl.duoc.invoice.dto.request.InvoiceRequestDto;
 import cl.duoc.invoice.dto.response.InvoiceResponseDto;
 import cl.duoc.invoice.exception.InvoiceAlreadyCancelledException;
 import cl.duoc.invoice.exception.ResourceNotFoundException;
@@ -47,6 +48,64 @@ class InvoiceServiceTest {
         invoice.setMontoTotal(new BigDecimal("11900"));
         invoice.setAnulada(anulada);
         return invoice;
+    }
+
+    private static InvoiceRequestDto request(String montoNeto) {
+        InvoiceRequestDto request = new InvoiceRequestDto();
+        request.setSaleId(10L);
+        request.setFecha(LocalDate.of(2026, 11, 25));
+        request.setRazonSocialReceptor("Cliente SPA");
+        request.setGiroReceptor("Retail");
+        request.setDireccionReceptor("Av. Siempre Viva 123");
+        request.setRutReceptor("11.111.111-1");
+        request.setRazonSocialEmisor("jKiltro SPA");
+        request.setGiroEmisor("Venta de productos para mascotas");
+        request.setDireccionEmisor("Av. Principal 456");
+        request.setRutEmisor("76.543.210-K");
+        request.setMontoNeto(new BigDecimal(montoNeto));
+        return request;
+    }
+
+    @Test
+    void createInvoice_calculatesIvaAndTotal() {
+        when(invoiceRepository.findTopByOrderByFolioDesc()).thenReturn(Optional.empty());
+        when(invoiceRepository.save(any(InvoiceModel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        InvoiceResponseDto response = invoiceService.createInvoice(request("10000"));
+
+        assertThat(response.getMontoNeto()).isEqualByComparingTo("10000");
+        assertThat(response.getIva()).isEqualByComparingTo("1900");
+        assertThat(response.getMontoTotal()).isEqualByComparingTo("11900");
+        assertThat(response.getAnulada()).isFalse();
+    }
+
+    @Test
+    void createInvoice_roundsAmountsToWholePesos() {
+        when(invoiceRepository.findTopByOrderByFolioDesc()).thenReturn(Optional.empty());
+        when(invoiceRepository.save(any(InvoiceModel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // 12345 * 0,19 = 2345,55 -> 2346
+        InvoiceResponseDto response = invoiceService.createInvoice(request("12345"));
+
+        assertThat(response.getIva()).isEqualByComparingTo("2346");
+        assertThat(response.getIva().scale()).isZero();
+        assertThat(response.getMontoTotal()).isEqualByComparingTo("14691");
+    }
+
+    @Test
+    void createInvoice_firstInvoice_getsFolioOne() {
+        when(invoiceRepository.findTopByOrderByFolioDesc()).thenReturn(Optional.empty());
+        when(invoiceRepository.save(any(InvoiceModel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThat(invoiceService.createInvoice(request("1000")).getFolio()).isEqualTo(1L);
+    }
+
+    @Test
+    void createInvoice_nextInvoice_getsLastFolioPlusOne() {
+        when(invoiceRepository.findTopByOrderByFolioDesc()).thenReturn(Optional.of(invoice(7L, false)));
+        when(invoiceRepository.save(any(InvoiceModel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThat(invoiceService.createInvoice(request("1000")).getFolio()).isEqualTo(8L);
     }
 
     @Test

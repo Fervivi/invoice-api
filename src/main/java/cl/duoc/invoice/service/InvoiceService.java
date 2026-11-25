@@ -13,6 +13,7 @@ import cl.duoc.invoice.exception.ResourceNotFoundException;
 import cl.duoc.invoice.model.InvoiceModel;
 import cl.duoc.invoice.repository.InvoiceRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class InvoiceService {
+
+    /** Tasa de IVA vigente en Chile (19%). */
+    private static final BigDecimal IVA_RATE = new BigDecimal("0.19");
 
     private final InvoiceRepository invoiceRepository;
 
@@ -44,8 +48,9 @@ public class InvoiceService {
         invoice.setDireccionEmisor(request.getDireccionEmisor());
         invoice.setRutEmisor(request.getRutEmisor());
 
-        BigDecimal montoNeto = request.getMontoNeto();
-        BigDecimal iva = montoNeto.multiply(new BigDecimal("0.19"));
+        // Los montos en pesos chilenos no llevan decimales: se redondean al peso más cercano.
+        BigDecimal montoNeto = request.getMontoNeto().setScale(0, RoundingMode.HALF_UP);
+        BigDecimal iva = montoNeto.multiply(IVA_RATE).setScale(0, RoundingMode.HALF_UP);
         BigDecimal montoTotal = montoNeto.add(iva);
 
         invoice.setMontoNeto(montoNeto);
