@@ -96,9 +96,9 @@ public class InvoiceController {
         @ApiResponse(responseCode = "404", description = "Factura no encontrada", content = @Content),
         @ApiResponse(responseCode = "409", description = "La factura ya se encuentra anulada", content = @Content)
     })
-    public ResponseEntity<InvoiceResponseDto> deleteInvoice(
+    public ResponseEntity<InvoiceResponseDto> anularInvoice(
             @Parameter(description = "Folio de la factura", example = "1") @PathVariable Long folio) {
-        InvoiceResponseDto response = invoiceService.deleteInvoice(folio);
+        InvoiceResponseDto response = invoiceService.anularInvoice(folio);
         return ResponseEntity.ok(response);
     }
 }

@@ -8,6 +8,7 @@ package cl.duoc.invoice.service;
 
 import cl.duoc.invoice.dto.request.InvoiceRequestDto;
 import cl.duoc.invoice.dto.response.InvoiceResponseDto;
+import cl.duoc.invoice.exception.InvoiceAlreadyCancelledException;
 import cl.duoc.invoice.exception.ResourceNotFoundException;
 import cl.duoc.invoice.model.InvoiceModel;
 import cl.duoc.invoice.repository.InvoiceRepository;
@@ -69,13 +70,14 @@ public class InvoiceService {
         return mapToResponseDto(invoice);
     }
 
-    public InvoiceResponseDto deleteInvoice(Long folio) {
+    /** Anula una factura (eliminación lógica). Una factura emitida no se borra: queda registrada como anulada. */
+    public InvoiceResponseDto anularInvoice(Long folio) {
         InvoiceModel invoice = invoiceRepository
                 .findByFolio(folio)
                 .orElseThrow(() -> new ResourceNotFoundException("Factura no encontrada con folio: " + folio));
 
         if (Boolean.TRUE.equals(invoice.getAnulada())) {
-            throw new RuntimeException("La factura ya se encuentra anulada");
+            throw new InvoiceAlreadyCancelledException(folio);
         }
 
         invoice.setAnulada(true);
