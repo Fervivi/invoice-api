@@ -44,8 +44,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<DtoApiError> handleRuntime(RuntimeException ex, HttpServletRequest request) {
+    @ExceptionHandler(InvoiceAlreadyCancelledException.class)
+    public ResponseEntity<DtoApiError> handleAlreadyCancelled(
+            InvoiceAlreadyCancelledException ex, HttpServletRequest request) {
 
         DtoApiError error = DtoApiError.builder()
                 .timestamp(LocalDate.now())
@@ -57,5 +58,21 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /** Errores no previstos: 500 sin exponer detalles internos al cliente. */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<DtoApiError> handleRuntime(RuntimeException ex, HttpServletRequest request) {
+
+        DtoApiError error = DtoApiError.builder()
+                .timestamp(LocalDate.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message("Error interno al procesar la solicitud")
+                .path(request.getRequestURI())
+                .claseException(ex.getClass().getSimpleName())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

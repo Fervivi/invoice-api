@@ -47,7 +47,8 @@ public class InvoiceController {
                 responseCode = "200",
                 description = "Facturas obtenidas correctamente",
                 content = @Content(array = @ArraySchema(schema = @Schema(implementation = InvoiceResponseDto.class)))),
-        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin o vendedor", content = @Content)
     })
     public ResponseEntity<List<InvoiceResponseDto>> getInvoices() {
         List<InvoiceResponseDto> invoices = invoiceService.getAllInvoices();
@@ -69,6 +70,23 @@ public class InvoiceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/sale/{saleId}")
+    @Operation(
+            summary = "Listar facturas de una venta",
+            description = "Obtiene las facturas asociadas a una venta. Devuelve una lista vacía si la venta no tiene"
+                    + " facturas.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Facturas de la venta obtenidas correctamente",
+                content = @Content(array = @ArraySchema(schema = @Schema(implementation = InvoiceResponseDto.class)))),
+        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content)
+    })
+    public ResponseEntity<List<InvoiceResponseDto>> getInvoicesBySale(
+            @Parameter(description = "ID de la venta en sales-api", example = "1") @PathVariable Long saleId) {
+        return ResponseEntity.ok(invoiceService.getInvoicesBySaleId(saleId));
+    }
+
     @GetMapping("/{folio}")
     @Operation(summary = "Buscar factura por folio", description = "Obtiene una factura usando su folio tributario.")
     @ApiResponses({
@@ -77,6 +95,7 @@ public class InvoiceController {
                 description = "Factura encontrada",
                 content = @Content(schema = @Schema(implementation = InvoiceResponseDto.class))),
         @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin o vendedor", content = @Content),
         @ApiResponse(responseCode = "404", description = "Factura no encontrada", content = @Content)
     })
     public ResponseEntity<InvoiceResponseDto> getInvoiceByFolio(
@@ -93,12 +112,13 @@ public class InvoiceController {
                 description = "Factura anulada correctamente",
                 content = @Content(schema = @Schema(implementation = InvoiceResponseDto.class))),
         @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin", content = @Content),
         @ApiResponse(responseCode = "404", description = "Factura no encontrada", content = @Content),
         @ApiResponse(responseCode = "409", description = "La factura ya se encuentra anulada", content = @Content)
     })
-    public ResponseEntity<InvoiceResponseDto> deleteInvoice(
+    public ResponseEntity<InvoiceResponseDto> anularInvoice(
             @Parameter(description = "Folio de la factura", example = "1") @PathVariable Long folio) {
-        InvoiceResponseDto response = invoiceService.deleteInvoice(folio);
+        InvoiceResponseDto response = invoiceService.anularInvoice(folio);
         return ResponseEntity.ok(response);
     }
 }
