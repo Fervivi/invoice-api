@@ -47,7 +47,8 @@ public class InvoiceController {
                 responseCode = "200",
                 description = "Facturas obtenidas correctamente",
                 content = @Content(array = @ArraySchema(schema = @Schema(implementation = InvoiceResponseDto.class)))),
-        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin o vendedor", content = @Content)
     })
     public ResponseEntity<List<InvoiceResponseDto>> getInvoices() {
         List<InvoiceResponseDto> invoices = invoiceService.getAllInvoices();
@@ -94,6 +95,7 @@ public class InvoiceController {
                 description = "Factura encontrada",
                 content = @Content(schema = @Schema(implementation = InvoiceResponseDto.class))),
         @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin o vendedor", content = @Content),
         @ApiResponse(responseCode = "404", description = "Factura no encontrada", content = @Content)
     })
     public ResponseEntity<InvoiceResponseDto> getInvoiceByFolio(
@@ -110,6 +112,7 @@ public class InvoiceController {
                 description = "Factura anulada correctamente",
                 content = @Content(schema = @Schema(implementation = InvoiceResponseDto.class))),
         @ApiResponse(responseCode = "401", description = "Token JWT ausente o invalido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Requiere rol admin", content = @Content),
         @ApiResponse(responseCode = "404", description = "Factura no encontrada", content = @Content),
         @ApiResponse(responseCode = "409", description = "La factura ya se encuentra anulada", content = @Content)
     })
